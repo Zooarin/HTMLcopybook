@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML Copybook - OneNote & Glass Layout</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Prism.js for Syntax Highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        onenote: {
+                            purple: '#6B21A8',
+                            darkPurple: '#3B0764',
+                            header: '#581C87',
+                            lightBg: '#1E1B4B'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0F172A;
+            color: #F8FAFC;
+        }
+        
+        code, pre {
+            font-family: 'Fira Code', monospace !important;
+        }
+
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.3);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(148, 163, 184, 0.5);
+        }
+
+        .token.tag, .token.class-name { color: #4EC9B0 !important; }
+        .token.attr-name { color: #9CDCFE !important; }
+        .token.attr-value, .token.string { color: #CE9178 !important; }
+        .token.function { color: #DCDCAA !important; }
+        .token.keyword { color: #569CD6 !important; }
+        .token.comment { color: #6A9955 !important; font-style: italic; }
+        .token.punctuation { color: #808080 !important; }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden select-none">
+
+    <!-- TOP HEADER -->
+    <header class="bg-gradient-to-r from-purple-950 via-slate-900 to-indigo-950 border-b border-white/10 pt-3 px-4 flex flex-col gap-3 shadow-xl z-20">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-purple-600/30 flex items-center justify-center border border-purple-400/30 shadow-lg shadow-purple-900/50">
+                    <i class="fa-solid fa-book-bookmark text-purple-300 text-lg"></i>
+                </div>
+                <div>
+                    <input id="app-title-input" type="text" value="📘 My HTML & JS Code Library" class="bg-transparent text-lg font-bold text-white border-b border-transparent hover:border-purple-400/50 focus:border-purple-400 focus:outline-none px-1 py-0.5 rounded transition">
+                    <p class="text-[11px] text-purple-300/70 px-1">OneNote Style Interactive Snippet Manager (Google Sheets Connected)</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="openSheetsModal()" id="sheet-status-badge" class="text-xs bg-purple-500/10 text-purple-300 hover:bg-purple-500/20 border border-purple-500/30 px-3 py-1.5 rounded-xl flex items-center gap-2 transition">
+                    <i class="fa-solid fa-table text-emerald-400"></i>
+                    <span id="sheet-status-text">구글시트 연동 설정</span>
+                </button>
+                <button onclick="pushToGoogleSheet()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3.5 py-1.5 rounded-xl border border-emerald-400/30 flex items-center gap-1.5 shadow-lg shadow-emerald-600/20 transition active:scale-95">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> 시트로 내보내기
+                </button>
+                <button onclick="pullFromGoogleSheet()" class="bg-purple-600 hover:bg-purple-500 text-white text-xs px-3.5 py-1.5 rounded-xl border border-purple-400/30 flex items-center gap-1.5 shadow-lg shadow-purple-600/30 transition active:scale-95">
+                    <i class="fa-solid fa-rotate text-xs"></i> 동기화
+                </button>
+            </div>
+        </div>
+
+        <!-- Top Topic Tabs -->
+        <div class="flex gap-2 overflow-x-auto pt-1 scrollbar-none" id="topic-tabs"></div>
+    </header>
+
+    <!-- MAIN WORKSPACE -->
+    <div class="flex-1 flex overflow-hidden bg-slate-950 relative">
+        <!-- Left Sidebar -->
+        <div class="w-80 glass-panel border-r border-white/10 flex flex-col flex-shrink-0 z-10">
+            <div class="p-3.5 border-b border-white/10 flex justify-between items-center bg-white/5">
+                <span class="text-xs font-bold text-purple-300 uppercase tracking-wider flex items-center gap-1.5">
+                    <i class="fa-solid fa-list-ul"></i> 세션 목록 (Snippets)
+                </span>
+                <button onclick="openNewSnippetModal()" class="text-xs bg-purple-600/30 hover:bg-purple-600/50 text-purple-200 border border-purple-400/30 px-2.5 py-1 rounded-lg flex items-center gap-1 transition shadow">
+                    <i class="fa-solid fa-plus"></i> 스니펫 추가
+                </button>
+            </div>
+
+            <div id="snippet-list" class="flex-1 overflow-y-auto p-3 space-y-2"></div>
+        </div>
+
+        <!-- Right Main Workspace -->
+        <div class="flex-1 flex flex-col overflow-hidden bg-slate-900/60">
+            <div class="p-4 border-b border-white/10 flex justify-between items-center bg-slate-900/80 backdrop-blur">
+                <div>
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <span id="current-snippet-title">스니펫을 선택하세요</span>
+                        <span id="current-snippet-tags" class="text-xs font-normal text-purple-300 bg-purple-900/40 border border-purple-500/30 px-2 py-0.5 rounded-full">#Tag</span>
+                    </h2>
+                    <p id="current-snippet-desc" class="text-xs text-gray-400 mt-1">설명이 여기에 표시됩니다.</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button onclick="copyCode('code-block')" class="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 shadow-lg shadow-purple-600/30 transition active:scale-95 border border-purple-400/30">
+                        <i class="fa-regular fa-copy text-sm"></i>
+                        <span>HTML 코드 복사</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-6 space-y-5">
+                <div class="glass-panel rounded-2xl p-4 border border-purple-500/30 bg-purple-950/20">
+                    <div class="text-xs font-bold text-purple-300 mb-2.5 flex items-center gap-2">
+                        <i class="fa-solid fa-code-compare text-purple-400"></i>
+                        <span>개발자 추천 함수/태그 분류 색상 (VS Code Classic Style)</span>
+                    </div>
+                    <div class="flex flex-wrap gap-2 text-xs">
+                        <span class="bg-slate-900/80 text-gray-200 px-2.5 py-1.5 rounded-lg border-l-4 border-[#DCDCAA] border-y border-r border-white/5 flex items-center gap-1.5">
+                            <strong class="text-[#DCDCAA]">Function Name:</strong> Yellow (#DCDCAA)
+                        </span>
+                        <span class="bg-slate-900/80 text-gray-200 px-2.5 py-1.5 rounded-lg border-l-4 border-[#569CD6] border-y border-r border-white/5 flex items-center gap-1.5">
+                            <strong class="text-[#569CD6]">Keyword / Event:</strong> Blue (#569CD6)
+                        </span>
+                        <span class="bg-slate-900/80 text-gray-200 px-2.5 py-1.5 rounded-lg border-l-4 border-[#4EC9B0] border-y border-r border-white/5 flex items-center gap-1.5">
+                            <strong class="text-[#4EC9B0]">HTML Tag:</strong> Teal (#4EC9B0)
+                        </span>
+                        <span class="bg-slate-900/80 text-gray-200 px-2.5 py-1.5 rounded-lg border-l-4 border-[#CE9178] border-y border-r border-white/5 flex items-center gap-1.5">
+                            <strong class="text-[#CE9178]">String / Value:</strong> Orange-Red (#CE9178)
+                        </span>
+                    </div>
+                </div>
+
+                <div class="rounded-2xl overflow-hidden border border-white/10 bg-[#1E1E1E] shadow-2xl">
+                    <div class="bg-[#252526] px-4 py-2.5 border-b border-white/5 flex justify-between items-center text-xs text-gray-400">
+                        <div class="flex items-center gap-2 font-mono">
+                            <i class="fa-brands fa-html5 text-orange-500 text-sm"></i>
+                            <span id="current-filename" class="text-gray-300 font-medium">index.html</span>
+                        </div>
+                        <span id="current-line-count" class="text-[11px] text-gray-500">UTF-8 • HTML5 & Inline JS</span>
+                    </div>
+                    <pre class="p-5 text-sm overflow-x-auto my-0 bg-[#1E1E1E] leading-relaxed"><code id="code-block" class="language-markup"></code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 1: SETTINGS -->
+    <div id="sheets-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-xl rounded-2xl border border-purple-500/30 p-6 shadow-2xl space-y-4">
+            <div class="flex justify-between items-center border-b border-white/10 pb-3">
+                <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-file-csv text-emerald-400"></i> Google Sheets 연동 설정
+                </h3>
+                <button onclick="closeSheetsModal()" class="text-gray-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <p class="text-xs text-gray-300 leading-relaxed">
+                Apps Script 배포 URL을 설정하면 웹 외부 실행(CORS/Fetch) 환경에서도 연동이 가능합니다.
+            </p>
+
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-medium text-purple-300 mb-1">Google Apps Script Web App URL</label>
+                    <input id="sheet-api-url" type="url" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-400">
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-2 pt-2">
+                <button onclick="saveSheetsConfig()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-4 py-2 rounded-xl font-medium transition">설정 저장 및 연동</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-5 py-3 rounded-xl shadow-2xl border border-emerald-400/30 flex items-center gap-3 text-sm font-medium transition-all duration-300 transform translate-y-20 opacity-0 z-50">
+        <i class="fa-solid fa-circle-check text-lg"></i>
+        <span id="toast-message">알림 메세지</span>
+    </div>
+
+    <script>
+        // 기본 기본값 데이터 (시트가 완전히 비어있을 때 사용)
+        let copybookData = {
+            topics: [
+                {
+                    id: "topic-1",
+                    title: "UI Layout Components",
+                    icon: "fa-folder-open",
+                    snippets: [
+                        {
+                            id: "snip-101",
+                            title: "Responsive Navbar Header",
+                            tags: ["#Navigation", "#Header"],
+                            description: "상단 네비게이션 바 레이아웃 및 반응형 토글 이벤트 코드 스니펫",
+                            language: "html",
+                            updatedAt: "2026-10-25 12:00",
+                            lines: 10,
+                            code: "<!-- 샘플 코드 -->\n<header>\n  <h1>Nav Bar</h1>\n</header>"
+                        }
+                    ]
+                }
+            ]
+        };
+
+        let currentTopicId = "topic-1";
+        let currentSnippetId = "snip-101";
+
+        // ★ [기본 연동 URL 설정] 아래 따옴표 안에 Apps Script 웹앱 배포 URL을 넣어두시면 기본값으로 적용됩니다.
+        const DEFAULT_API_URL = "https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec";
+
+        // Apps Script 웹앱 내부 실행 유무 판별
+        const IN_GAS = typeof google !== 'undefined' && google.script && google.script.run;
+
+        function getApiUrl() {
+            const savedUrl = localStorage.getItem('sheet_api_url');
+            if (savedUrl && savedUrl.trim() !== "") {
+                return savedUrl.trim();
+            }
+            return (DEFAULT_API_URL.includes("YOUR_DEPLOYMENT_ID")) ? "" : DEFAULT_API_URL;
+        }
+
+        function gasCall(fn, arg) {
+            return new Promise((resolve, reject) => {
+                const r = google.script.run.withSuccessHandler(resolve).withFailureHandler(reject);
+                arg === undefined ? r[fn]() : r[fn](arg);
+            });
+        }
+
+        function renderApp() {
+            renderTopicTabs();
+            renderSnippetList();
+            renderSnippetDetail();
+        }
+
+        function renderTopicTabs() {
+            const tabsContainer = document.getElementById('topic-tabs');
+            tabsContainer.innerHTML = '';
+
+            if (!copybookData.topics) copybookData.topics = [];
+
+            copybookData.topics.forEach(topic => {
+                const isActive = topic.id === currentTopicId;
+                const btn = document.createElement('button');
+                btn.className = isActive 
+                    ? "bg-slate-900 text-purple-300 font-semibold px-4 py-2.5 rounded-t-xl text-xs flex items-center gap-2 border-t-2 border-purple-500 border-x border-white/10 shadow-lg relative"
+                    : "bg-white/5 hover:bg-white/10 text-gray-300 px-4 py-2.5 rounded-t-xl text-xs flex items-center gap-2 border-t border-x border-white/5 transition";
+                
+                btn.onclick = () => {
+                    currentTopicId = topic.id;
+                    const firstSnip = topic.snippets && topic.snippets.length > 0 ? topic.snippets[0] : null;
+                    currentSnippetId = firstSnip ? firstSnip.id : null;
+                    renderApp();
+                };
+
+                btn.innerHTML = `<i class="fa-solid ${topic.icon || 'fa-folder'} text-purple-400"></i>
+                                 <span>${topic.title}</span>`;
+                tabsContainer.appendChild(btn);
+            });
+
+            const addTopicBtn = document.createElement('button');
+            addTopicBtn.className = "bg-purple-900/30 hover:bg-purple-800/40 text-purple-300 px-3 py-2.5 rounded-t-xl text-xs border border-dashed border-purple-500/30 transition flex items-center gap-1";
+            addTopicBtn.innerHTML = `<i class="fa-solid fa-plus text-xs"></i> 새 주제 추가`;
+            addTopicBtn.onclick = () => {
+                const title = prompt("새 주제 제목을 입력하세요:");
+                if (title && title.trim() !== "") {
+                    const newId = `topic-${Date.now()}`;
+                    copybookData.topics.push({ id: newId, title: title.trim(), icon: "fa-folder", snippets: [] });
+                    currentTopicId = newId;
+                    currentSnippetId = null;
+                    renderApp();
+                    showToast("새 주제가 추가되었습니다. '시트로 내보내기'를 눌러 저장하세요.");
+                }
+            };
+            tabsContainer.appendChild(addTopicBtn);
+        }
+
+        function renderSnippetList() {
+            const listContainer = document.getElementById('snippet-list');
+            listContainer.innerHTML = '';
+
+            const activeTopic = copybookData.topics.find(t => t.id === currentTopicId);
+            if (!activeTopic || !activeTopic.snippets || !activeTopic.snippets.length) {
+                listContainer.innerHTML = `<div class="p-4 text-xs text-gray-500 text-center">등록된 스니펫이 없습니다.<br>상단의 [+ 스니펫 추가] 버튼을 눌러보세요.</div>`;
+                return;
+            }
+
+            activeTopic.snippets.forEach(snip => {
+                const isActive = snip.id === currentSnippetId;
+                const card = document.createElement('div');
+                card.className = isActive
+                    ? "p-3 rounded-xl bg-purple-600/20 border border-purple-500/50 shadow-lg cursor-pointer transition relative group"
+                    : "p-3 rounded-xl glass-card hover:bg-white/10 border border-white/5 cursor-pointer transition";
+
+                card.onclick = () => {
+                    currentSnippetId = snip.id;
+                    renderApp();
+                };
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div class="font-semibold text-sm ${isActive ? 'text-white' : 'text-gray-200'} truncate">${snip.title}</div>
+                        <span class="text-[10px] bg-purple-500/30 text-purple-300 px-1.5 py-0.5 rounded border border-purple-400/30">${(snip.language || 'html').toUpperCase()}</span>
+                    </div>
+                    <div class="text-xs text-gray-400 mt-1 line-clamp-1">${snip.description || ''}</div>
+                    <div class="text-[11px] text-purple-300/70 mt-2 flex justify-between items-center">
+                        <span><i class="fa-regular fa-clock mr-1"></i>${snip.updatedAt || ''}</span>
+                        <span class="font-mono">${snip.lines || 0} lines</span>
+                    </div>
+                `;
+                listContainer.appendChild(card);
+            });
+        }
+
+        function renderSnippetDetail() {
+            const activeTopic = copybookData.topics.find(t => t.id === currentTopicId);
+            const snip = activeTopic && activeTopic.snippets ? activeTopic.snippets.find(s => s.id === currentSnippetId) : null;
+
+            const titleElem = document.getElementById('current-snippet-title');
+            const tagsElem = document.getElementById('current-snippet-tags');
+            const descElem = document.getElementById('current-snippet-desc');
+            const linesElem = document.getElementById('current-line-count');
+            const codeElem = document.getElementById('code-block');
+
+            if (!snip) {
+                titleElem.innerText = activeTopic ? activeTopic.title : "선택된 주제가 없습니다.";
+                tagsElem.innerText = "";
+                descElem.innerText = "스니펫을 추가해주세요.";
+                linesElem.innerText = "0 lines";
+                codeElem.textContent = "<!-- 여기에 스니펫 코드가 표시됩니다 -->";
+                Prism.highlightElement(codeElem);
+                return;
+            }
+
+            titleElem.innerText = snip.title;
+            tagsElem.innerText = Array.isArray(snip.tags) ? snip.tags.join(" ") : snip.tags;
+            descElem.innerText = snip.description;
+            linesElem.innerText = `${snip.lines || 0} lines • HTML5 & Inline JS`;
+            codeElem.textContent = snip.code;
+
+            Prism.highlightElement(codeElem);
+        }
+
+        function openNewSnippetModal() {
+            if (!currentTopicId) {
+                alert("먼저 주제를 선택하거나 새로 생성해 주세요.");
+                return;
+            }
+
+            const title = prompt("스니펫 제목:");
+            if (!title) return;
+            const desc = prompt("설명:");
+            const code = prompt("HTML 코드 붙여넣기:", "<!-- Sample Code -->");
+
+            const activeTopic = copybookData.topics.find(t => t.id === currentTopicId);
+            if (activeTopic) {
+                if (!activeTopic.snippets) activeTopic.snippets = [];
+                const newSnip = {
+                    id: `snip-${Date.now()}`,
+                    title: title,
+                    tags: ["#HTML"],
+                    description: desc || "스니펫 설명",
+                    language: "html",
+                    updatedAt: new Date().toISOString().slice(0, 16).replace('T', ' '),
+                    lines: code ? code.split('\n').length : 1,
+                    code: code || ""
+                };
+                activeTopic.snippets.unshift(newSnip);
+                currentSnippetId = newSnip.id;
+                renderApp();
+                showToast("새 스니펫이 추가되었습니다.");
+            }
+        }
+
+        function openSheetsModal() {
+            document.getElementById('sheets-modal').classList.remove('hidden');
+            document.getElementById('sheet-api-url').value = getApiUrl();
+        }
+
+        function closeSheetsModal() {
+            document.getElementById('sheets-modal').classList.add('hidden');
+        }
+
+        function saveSheetsConfig() {
+            const apiUrl = document.getElementById('sheet-api-url').value.trim();
+            localStorage.setItem('sheet_api_url', apiUrl);
+            document.getElementById('sheet-status-text').innerText = getApiUrl() ? "구글시트 연동됨" : "구글시트 연동 설정";
+            closeSheetsModal();
+            showToast("구글시트 연동 설정이 저장되었습니다!");
+        }
+
+        async function pushToGoogleSheet() {
+            try {
+                showToast("구글시트로 전송 중...");
+                let res;
+                if (IN_GAS) {
+                    res = await gasCall('apiSaveAll', JSON.parse(JSON.stringify(copybookData)));
+                } else {
+                    const apiUrl = getApiUrl();
+                    if (!apiUrl) { openSheetsModal(); return; }
+                    const r = await fetch(apiUrl, { method: 'POST', body: JSON.stringify(copybookData) });
+                    res = await r.json();
+                }
+                if (res.status !== 'success') throw new Error(res.message);
+                showToast("구글시트에 저장했습니다! (" + res.rows + "행)");
+            } catch (err) {
+                console.error(err);
+                showToast("구글시트 저장 오류: " + (err.message || err));
+            }
+        }
+
+        async function pullFromGoogleSheet() {
+            try {
+                showToast("구글시트 동기화 중...");
+                let data;
+                if (IN_GAS) {
+                    data = await gasCall('apiGetData');
+                } else {
+                    const apiUrl = getApiUrl();
+                    if (!apiUrl) { openSheetsModal(); return; }
+                    const r = await fetch(apiUrl + (apiUrl.includes('?') ? '&' : '?') + 'action=getData');
+                    data = await r.json();
+                }
+                
+                if (data && data.topics && data.topics.length > 0) {
+                    copybookData = data;
+                    currentTopicId = data.topics[0].id;
+                    const firstSnip = data.topics[0].snippets && data.topics[0].snippets.length > 0 ? data.topics[0].snippets[0] : null;
+                    currentSnippetId = firstSnip ? firstSnip.id : null;
+                    renderApp();
+                    showToast("구글시트 데이터와 동기화되었습니다!");
+                } else {
+                    showToast("시트에 불러올 데이터가 없어 기본 상태를 유지합니다.");
+                }
+            } catch (err) {
+                console.error(err);
+                showToast("구글시트 불러오기 오류");
+            }
+        }
+
+        function copyCode(elementId) {
+            const codeElement = document.getElementById(elementId);
+            const textToCopy = codeElement.innerText;
+
+            const textarea = document.createElement('textarea');
+            textarea.value = textToCopy;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+
+            showToast("HTML 코드가 클립보드에 성공적으로 복사되었습니다!");
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-message');
+            toastMsg.innerText = message;
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 2500);
+        }
+
+        window.onload = function() {
+            renderApp();
+            if (getApiUrl()) {
+                document.getElementById('sheet-status-text').innerText = "구글시트 연동됨";
+            }
+            if (IN_GAS || getApiUrl()) {
+                pullFromGoogleSheet();
+            }
+        };
+    </script>
+</body>
+</html>
