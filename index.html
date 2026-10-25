@@ -79,6 +79,63 @@
         .token.keyword { color: #569CD6 !important; }
         .token.comment { color: #6A9955 !important; font-style: italic; }
         .token.punctuation { color: #808080 !important; }
+
+        /* ===== 모바일 세로 보기 전용 레이아웃 (폭 767px 이하, 아이폰 세로 등) =====
+           ※ 데스크톱/태블릿 가로 레이아웃은 그대로이며, 아래 규칙은 모바일에서만 적용됩니다. */
+        @media (max-width: 767px) {
+            html { -webkit-text-size-adjust: 100%; }
+            body { height: 100dvh !important; overscroll-behavior: none; }
+            button, [onclick] { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+
+            /* 1) 상단 헤더: 제목 / 버튼 / 탭을 세로로 쌓기 */
+            body > header { padding: 0.625rem 0.75rem 0 !important; gap: 0.5rem !important; }
+            body > header > div:first-child { flex-direction: column !important; align-items: stretch !important; gap: 0.625rem !important; }
+            body > header > div:first-child > div:first-child { width: 100%; min-width: 0; }
+            body > header > div:first-child > div:first-child > div:first-child { flex: 0 0 auto; }
+            body > header > div:first-child > div:first-child > div:last-child { flex: 1 1 auto; min-width: 0; }
+            #app-title-input { width: 100%; min-width: 0; }
+            body > header > div:first-child > div:first-child p { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+            body > header > div:first-child > div:last-child { display: flex; flex-wrap: wrap; width: 100%; gap: 0.5rem !important; }
+            body > header > div:first-child > div:last-child > button { flex: 1 1 auto; justify-content: center; min-height: 40px; white-space: nowrap; padding-left: 0.625rem; padding-right: 0.625rem; }
+
+            /* 주제 탭: 가로 스와이프 */
+            #topic-tabs { padding-top: 0 !important; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+            #topic-tabs::-webkit-scrollbar { display: none; }
+            #topic-tabs > button { flex: 0 0 auto; white-space: nowrap; min-height: 40px; }
+
+            /* 2) 본문: 좌우 2단 → 상하 1단 (스니펫 목록 위, 상세 아래) */
+            body > header + div { flex-direction: column !important; }
+            body > header + div > div:first-child { width: 100% !important; flex: 0 0 auto !important; border-right: 0 !important; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+            body > header + div > div:first-child > div:first-child { padding: 0.5rem 0.75rem !important; }
+            body > header + div > div:first-child > div:first-child button { min-height: 36px; }
+
+            /* 스니펫 목록: 가로 스와이프 카드 */
+            #snippet-list { flex: 0 0 auto !important; display: flex !important; flex-direction: row !important; gap: 0.5rem; padding: 0.625rem 0.75rem !important; overflow-x: auto !important; overflow-y: hidden !important; -webkit-overflow-scrolling: touch; scroll-snap-type: x proximity; scrollbar-width: none; }
+            #snippet-list::-webkit-scrollbar { display: none; }
+            #snippet-list > * { flex: 0 0 78% !important; max-width: 20rem; min-width: 0; margin-top: 0 !important; scroll-snap-align: start; }
+            #snippet-list > *:only-child { flex-basis: 100% !important; max-width: none; }
+
+            /* 3) 상세 영역 */
+            body > header + div > div:nth-child(2) { min-height: 0; }
+            body > header + div > div:nth-child(2) > div:first-child { flex-direction: column; align-items: stretch !important; gap: 0.625rem; padding: 0.75rem !important; }
+            body > header + div > div:nth-child(2) > div:first-child h2 { flex-wrap: wrap; font-size: 1.125rem; line-height: 1.5rem; }
+            body > header + div > div:nth-child(2) > div:first-child > div:last-child { width: 100%; }
+            body > header + div > div:nth-child(2) > div:first-child > div:last-child > button { width: 100%; justify-content: center; min-height: 44px; }
+            body > header + div > div:nth-child(2) > div:nth-child(2) { padding: 0.75rem 0.75rem calc(0.75rem + env(safe-area-inset-bottom)) !important; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+            body > header + div > div:nth-child(2) > div:nth-child(2) > div:first-child { padding: 0.625rem 0.75rem !important; }
+            body > header + div > div:nth-child(2) > div:nth-child(2) > div:first-child .flex-wrap > span { font-size: 0.6875rem; padding: 0.3125rem 0.5rem; }
+            body > header + div pre { padding: 0.75rem !important; font-size: 0.75rem !important; -webkit-overflow-scrolling: touch; }
+
+            /* 4) 설정 모달 */
+            #sheets-modal { padding: 0.75rem !important; }
+            #sheets-modal > div { padding: 1rem !important; max-height: calc(100dvh - 1.5rem); overflow-y: auto; }
+            #sheets-modal button[onclick="closeSheetsModal()"] { min-width: 44px; min-height: 44px; }
+            #sheet-api-url { font-size: 16px !important; min-height: 44px; }  /* 16px 미만이면 iOS가 입력 시 화면을 확대함 */
+            #sheets-modal button[onclick="saveSheetsConfig()"] { width: 100%; min-height: 44px; }
+
+            /* 5) 토스트 알림: 하단 가로 전체 폭 */
+            #toast { left: 0.75rem !important; right: 0.75rem !important; bottom: calc(1rem + env(safe-area-inset-bottom)) !important; padding: 0.75rem 1rem !important; font-size: 0.8125rem; pointer-events: none; }
+        }
     </style>
 </head>
 <body class="h-screen flex flex-col overflow-hidden select-none">
